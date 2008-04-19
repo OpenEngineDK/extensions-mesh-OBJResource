@@ -45,6 +45,7 @@ private:
 
     string file;                      //!< obj file path
     FaceSet* faces;                   //!< the face set
+    ISceneNode* node;                 //!< the scene node
     map<string, Material*> materials; //!< resources material map
 
     // helper methods
@@ -56,7 +57,8 @@ public:
     ~OBJResource();
     void Load();
     void Unload();
-    FaceSet* GetFaceSet();
+    //FaceSet* GetFaceSet();
+    ISceneNode* GetSceneNode();
 };
 
 /**
