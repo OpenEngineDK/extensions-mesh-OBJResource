@@ -256,8 +256,8 @@ void OBJResource::Load() {
                         Error(line, "norm["+Convert::int2string(i)+"] is the zero vector.");
 
                 // add resource pointers
-                face->texr = texr;
-                face->shad = shad;
+                face->mat->texr = texr;
+                face->mat->shad = shad;
 
                 // add the face to the FaceSet
                 faces->Add(face);
