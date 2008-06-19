@@ -15,6 +15,7 @@
 #include <Resources/ResourcePlugin.h>
 #include <Resources/ITextureResource.h>
 #include <Resources/IShaderResource.h>
+#include <Geometry/Material.h>
 #include <Geometry/FaceSet.h>
 
 #include <string>
@@ -35,18 +36,11 @@ class OBJResource : public IModelResource {
 private:
 
     // inner material structure
-    class Material {
-    public:
-        ITextureResourcePtr texture; //!< texture resource 
-        IShaderResourcePtr shader;   //!< shader resource 
-        Material() {}
-        ~Material() {}
-    };
 
     string file;                      //!< obj file path
     FaceSet* faces;                   //!< the face set
     ISceneNode* node;                 //!< the scene node
-    map<string, Material*> materials; //!< resources material map
+    map<string, MaterialPtr> materials; //!< resources material map
 
     // helper methods
     void Error(int line, string msg);

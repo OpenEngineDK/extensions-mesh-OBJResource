@@ -81,7 +81,7 @@ void OBJResource::LoadMaterialFile(string file) {
     ifstream* in = File::Open(file);
 
     // set up working variables
-    Material* m = NULL;
+    MaterialPtr m;
     char buf[255], tmp[255];
     int line = 0;
 
@@ -102,7 +102,7 @@ void OBJResource::LoadMaterialFile(string file) {
                 Error(line, "Invalid newmtr declaration");
             else {
                 // make a new material and add it to the material map
-                m = new Material();
+                m = MaterialPtr(new Material());
                 materials.insert(make_pair(string(tmp), m));
             }
 
@@ -110,7 +110,7 @@ void OBJResource::LoadMaterialFile(string file) {
         else if (string(buf,6) == "map_Kd")
             if (sscanf(buf, "map_Kd %s", tmp) != 1)
                 Error(line, "Invalid map_Ka declaration");
-            else if (m == NULL || m->texture != NULL)
+            else if (m == NULL || m->texr != NULL)
                 // texture != NULL means we already set it and no newmtl has appeared since
                 Error(line, "Multiple map_Kd sections appear before a newmtr declaration");
             else {
@@ -118,14 +118,14 @@ void OBJResource::LoadMaterialFile(string file) {
 				if (! DirectoryManager::IsInPath(resource_dir)) {
 					DirectoryManager::AppendPath(resource_dir);
 				}
-				m->texture = ResourceManager<ITextureResource>::Create(string(tmp));
+				m->texr = ResourceManager<ITextureResource>::Create(string(tmp));
             }
 
         // shader material
         else if (string(buf,6) == "shader")
             if (sscanf(buf, "shader %s", tmp) != 1)
                 Error(line, "Invalid shader declaration");
-            else if (m == NULL || m->shader != NULL)
+            else if (m == NULL || m->shad != NULL)
                 // shader != NULL means we already set it and no newmtl has appeared since
                 Error(line, "Multiple shader sections appear before a newmtr declaration");
             else {
@@ -133,7 +133,7 @@ void OBJResource::LoadMaterialFile(string file) {
 				if (! DirectoryManager::IsInPath(resource_dir)) {
 					DirectoryManager::AppendPath(resource_dir);
 				}
-				m->shader = ResourceManager<IShaderResource>::Create(string(tmp));
+				m->shad = ResourceManager<IShaderResource>::Create(string(tmp));
             }
         
         // we ignore all other sections in the material file
@@ -167,8 +167,10 @@ void OBJResource::Load() {
     char buffer[255];
     float f1, f2, f3;
     int line = 0;
-    ITextureResourcePtr texr;
-    IShaderResourcePtr  shad;
+    //ITextureResourcePtr texr;
+    //IShaderResourcePtr  shad;
+    MaterialPtr mat;
+    MaterialPtr defaultMaterial = MaterialPtr(new Material());
     vector< Vector<3,float> > vert, norm;
     vector< Vector<2,float> > texc;
 
@@ -256,8 +258,7 @@ void OBJResource::Load() {
                         Error(line, "norm["+Convert::int2string(i)+"] is the zero vector.");
 
                 // add resource pointers
-                face->mat->texr = texr;
-                face->mat->shad = shad;
+                face->mat = mat;
 
                 // add the face to the FaceSet
                 faces->Add(face);
@@ -276,15 +277,13 @@ void OBJResource::Load() {
         else if (string(buffer,6) == "usemtl") {
             char name[255];
             sscanf(buffer, "usemtl %s", name);
-            map<string, Material*>::iterator mat;
-            mat = materials.find(name);
-            if (mat == materials.end()) {
-                texr.reset();
-                shad.reset();
+            map<string, MaterialPtr>::iterator mate;
+            mate = materials.find(name);
+            if (mate == materials.end()) {
+                mat = defaultMaterial;
                 Error(line, "Material "+string(name)+" is not defined in any material resources");
             } else {
-                texr = mat->second->texture;
-                shad = mat->second->shader;
+                mat = mate->second;
             }
         }
 
