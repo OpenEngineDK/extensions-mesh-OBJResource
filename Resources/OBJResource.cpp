@@ -255,7 +255,7 @@ void OBJResource::Load() {
                 // check against invalid normals
                 for (int i=0; i<3; i++)
                     if (face->norm[i].IsZero())
-                        Error(line, "norm["+Convert::int2string(i)+"] is the zero vector.");
+                        Error(line, "norm["+Convert::ToString(i)+"] is the zero vector.");
 
                 // add resource pointers
                 face->mat = mat;
