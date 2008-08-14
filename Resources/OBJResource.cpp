@@ -84,7 +84,8 @@ void OBJResource::LoadMaterialFile(string file) {
     MaterialPtr m;
     char buf[255], tmp[255];
     int line = 0;
-
+    float tmpcol[3];
+    
     // save the obj file and set this file as the current file so
     // errors are printed correctly
     string objfile = this->file;
@@ -101,15 +102,69 @@ void OBJResource::LoadMaterialFile(string file) {
             if (sscanf(buf, "newmtl %s", tmp) != 1)
                 Error(line, "Invalid newmtr declaration");
             else {
-                // make a new material and add it to the material map
+               // make a new material and add it to the material map
                 m = MaterialPtr(new Material());
                 materials.insert(make_pair(string(tmp), m));
+                // default material values as given in mtl specification
+                //https://people.scs.fsu.edu/~burkardt/data/mtl/mtl.html
+                m->ambient = Vector<4,float>(.2,.2,.2,1.0);
+                m->diffuse = Vector<4,float>(.8,.8,.8,1.0);
+                m->specular = Vector<4,float>(1.0,1.0,1.0,1.0);
+                m->shininess = 0.0;
+
             }
 
-        // texture material
+        // ambient component
+        else if (string(buf,2) == "Ka")
+            if (sscanf(buf, "Ka %f %f %f", &tmpcol[0], &tmpcol[1], &tmpcol[2]) != 3)
+                Error(line, "Invalid Ka declaration");
+            else if (m == NULL)
+                Error(line, "Ka section without newmtr declaration");
+            else {
+				m->ambient[0] = tmpcol[0];
+				m->ambient[1] = tmpcol[1];
+				m->ambient[2] = tmpcol[2];
+            }
+
+        // diffuse component
+        else if (string(buf,2) == "Kd")
+            if (sscanf(buf, "Kd %f %f %f", &tmpcol[0], &tmpcol[1], &tmpcol[2]) != 3)
+                Error(line, "Invalid Kd declaration");
+            else if (m == NULL)
+                Error(line, "Kd section without newmtr declaration");
+            else {
+				m->diffuse[0] = tmpcol[0];
+				m->diffuse[1] = tmpcol[1];
+				m->diffuse[2] = tmpcol[2];
+            }
+
+        // specular component
+        else if (string(buf,2) == "Ks")
+            if (sscanf(buf, "Ks %f %f %f", &tmpcol[0], &tmpcol[1], &tmpcol[2]) != 3)
+                Error(line, "Invalid Ks declaration");
+            else if (m == NULL)
+                Error(line, "Ks section without newmtr declaration");
+            else {
+				m->specular[0] = tmpcol[0];
+				m->specular[1] = tmpcol[1];
+				m->specular[2] = tmpcol[2];
+            }
+
+        // shininess
+        else if (string(buf,2) == "Ns")
+            if (sscanf(buf, "Ns %f", tmpcol) != 1)
+                Error(line, "Invalid Ns declaration");
+            else if (m == NULL)
+                Error(line, "Ns section without newmtr declaration");
+            else {
+				m->shininess = tmpcol[0];
+            }
+
+
+        // texture material in diffuse channel
         else if (string(buf,6) == "map_Kd")
             if (sscanf(buf, "map_Kd %s", tmp) != 1)
-                Error(line, "Invalid map_Ka declaration");
+                Error(line, "Invalid map_Kd declaration");
             else if (m == NULL || m->texr != NULL)
                 // texture != NULL means we already set it and no newmtl has appeared since
                 Error(line, "Multiple map_Kd sections appear before a newmtr declaration");
