@@ -48,7 +48,7 @@ private:
 
 public:
     OBJResource(string file);
-    ~OBJResource();
+    virtual ~OBJResource();
     void Load();
     void Unload();
     //FaceSet* GetFaceSet();
