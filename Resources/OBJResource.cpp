@@ -348,6 +348,7 @@ void OBJResource::Load() {
 
     // close the file
     in->close();
+    delete in;
 
     node = new GeometryNode(faces);
 }
