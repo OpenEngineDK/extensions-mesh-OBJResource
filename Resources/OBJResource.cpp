@@ -177,7 +177,7 @@ void OBJResource::LoadMaterialFile(string file) {
             }
 
         // shader material
-        else if (string(buf,6) == "shader")
+        else if (string(buf,6) == "shader") {
             if (sscanf(buf, "shader %s", tmp) != 1)
                 Error(line, "Invalid shader declaration");
             else if (m == NULL || m->shad != NULL)
@@ -190,7 +190,7 @@ void OBJResource::LoadMaterialFile(string file) {
 				}
 				m->shad = ResourceManager<IShaderResource>::Create(string(tmp));
             }
-        
+        }
         // we ignore all other sections in the material file
     }
     // reset file name to obj file

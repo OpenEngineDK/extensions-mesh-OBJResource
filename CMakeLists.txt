@@ -5,5 +5,9 @@ ADD_LIBRARY( ${EXTENSION_NAME}
 )
 
 TARGET_LINK_LIBRARIES( ${EXTENSION_NAME}
-  OpenEngine_Core
+  OpenEngine_Resources
+  OpenEngine_Geometry
+  OpenEngine_Logging
+  OpenEngine_Scene
+  OpenEngine_Utils
 )
