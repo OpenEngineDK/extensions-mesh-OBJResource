@@ -209,6 +209,9 @@ void OBJResource::LoadMaterialFile(string file) {
  * @see Geometry::Face
  */
 void OBJResource::Load() {
+    // change the default floating point decimal symbol to .
+    struct lconv * lc = localeconv();
+    setlocale(LC_NUMERIC, "C");
 
     // check if we have loaded the resource
     if (faces != NULL) return;
@@ -351,6 +354,9 @@ void OBJResource::Load() {
     delete in;
 
     node = new GeometryNode(faces);
+
+    // change back the default floating point decimal symboly
+    setlocale(LC_NUMERIC, lc->decimal_point);
 }
 
 /**
