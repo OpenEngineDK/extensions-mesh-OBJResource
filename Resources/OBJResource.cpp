@@ -173,7 +173,7 @@ void OBJResource::LoadMaterialFile(string file) {
 				if (! DirectoryManager::IsInPath(resource_dir)) {
 					DirectoryManager::AppendPath(resource_dir);
 				}
-				m->texr = ResourceManager<ITextureResource>::Create(string(tmp));
+				m->texr = ResourceManager<ITexture2D>::Create(string(tmp));
             }
 
         // shader material
@@ -225,7 +225,7 @@ void OBJResource::Load() {
     char buffer[255];
     float f1, f2, f3;
     int line = 0;
-    //ITextureResourcePtr texr;
+    //ITexture2DPtr texr;
     //IShaderResourcePtr  shad;
     MaterialPtr mat;
     MaterialPtr defaultMaterial = MaterialPtr(new Material());
