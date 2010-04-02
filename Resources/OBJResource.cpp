@@ -165,7 +165,7 @@ void OBJResource::LoadMaterialFile(string file) {
         else if (string(buf,6) == "map_Kd")
             if (sscanf(buf, "map_Kd %s", tmp) != 1)
                 Error(line, "Invalid map_Kd declaration");
-            else if (m == NULL || m->texr != NULL)
+            else if (m == NULL || m->Get2DTextures().size() != 0)
                 // texture != NULL means we already set it and no newmtl has appeared since
                 Error(line, "Multiple map_Kd sections appear before a newmtr declaration");
             else {
@@ -173,7 +173,7 @@ void OBJResource::LoadMaterialFile(string file) {
 				if (! DirectoryManager::IsInPath(resource_dir)) {
 					DirectoryManager::AppendPath(resource_dir);
 				}
-				m->texr = ResourceManager<ITexture2D>::Create(string(tmp));
+                m->AddTexture(ResourceManager<ITexture2D>::Create(string(tmp)));
             }
 
         // shader material
