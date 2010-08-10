@@ -328,48 +328,37 @@ void OBJResource::Load() {
     in->close();
     delete in;
 
+    logger.info << "is: " << indices.size() << logger.end;
+    logger.info << "vert: " << vert.size() << logger.end;
+    logger.info << "norm: " << norm.size() << logger.end;
+    logger.info << "texc: " << texc.size() << logger.end;
+
     if (!indices.empty()) {
-        unsigned int sz = indices.size();
-        unsigned int* d = new unsigned int[sz];
-        for (unsigned int i = 0; i < sz; ++i) 
-            d[i] = indices[i];
-        is = new Indices(sz, d);
-    }
-
-    if (!vert.empty()) {
-        unsigned int sz = vert.size();
-        float* d = new float[sz*3];
+        unsigned int sz = indices.size()/3;
+        unsigned int* id = new unsigned int[sz];
+        float* vd = new float[sz*3];
+        float* nd = new float[sz*3];
+        float* td = new float[sz*2];
         for (unsigned int i = 0; i < sz; ++i) {
-            Vector<3,float> v = vert[i];
-            v.ToArray(&d[i]);
+            Vector<3,float> v3;
+            Vector<2,float> v2;
+            id[i] = i;
+            v3 = vert[indices[i*3]];
+            v3.ToArray(&vd[i*3]);
+            v3 = norm[indices[i*3+2]];
+            v3.ToArray(&nd[i*3]);
+            v2 = texc[indices[i*3+1]];
+            v2.ToArray(&td[i*2]);
         }
-        vs = new DataBlock<3,float>(sz, d);
-    }
-
-    if (!norm.empty()) {
-        unsigned int sz = norm.size();
-        float* d = new float[sz*3];
-        for (unsigned int i = 0; i < sz; ++i) {
-            Vector<3,float> v = norm[i];
-            v.ToArray(&d[i]);
-        }
-        ns = new DataBlock<3,float>(sz, d);
-    }
-
-    if (!texc.empty()) {
-        unsigned int sz = texc.size();
-        float* d = new float[sz*2];
-        for (unsigned int i = 0; i < sz; ++i) {
-            Vector<2,float> v = texc[i];
-            v.ToArray(&d[i]);
-        }
-        ts = new DataBlock<2,float>(sz, d);
+        is = new Indices(sz, id);
+        vs = new DataBlock<3,float>(sz, vd);
+        ns = new DataBlock<3,float>(sz, nd);
+        ts = new DataBlock<2,float>(sz, td);
     }
 
     IDataBlockList texlist;
     texlist.push_back(Float2DataBlockPtr(ts));
     GeometrySetPtr gs = GeometrySetPtr(new GeometrySet(Float3DataBlockPtr(vs), Float3DataBlockPtr(ns), texlist, Float3DataBlockPtr()));
-
     // // create a new mesh
     mesh = MeshPtr(new Mesh(IndicesPtr(is), TRIANGLES, gs, mat));
     node = new MeshNode(mesh);
