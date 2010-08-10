@@ -328,11 +328,6 @@ void OBJResource::Load() {
     in->close();
     delete in;
 
-    logger.info << "is: " << indices.size() << logger.end;
-    logger.info << "vert: " << vert.size() << logger.end;
-    logger.info << "norm: " << norm.size() << logger.end;
-    logger.info << "texc: " << texc.size() << logger.end;
-
     if (!indices.empty()) {
         unsigned int sz = indices.size()/3;
         unsigned int* id = new unsigned int[sz];
