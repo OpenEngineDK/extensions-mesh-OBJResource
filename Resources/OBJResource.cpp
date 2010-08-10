@@ -15,7 +15,10 @@
 #include <Logging/Logger.h>
 #include <Utils/Convert.h>
 
-#include <Scene/GeometryNode.h>
+#include <Scene/MeshNode.h>
+#include <Geometry/GeometrySet.h>
+#include <Resources/DataBlock.h>
+
 
 namespace OpenEngine {
 namespace Resources {
@@ -46,7 +49,7 @@ IModelResourcePtr OBJPlugin::CreateResource(string file) {
 /**
  * Resource constructor.
  */
-OBJResource::OBJResource(string file) : file(file), faces(NULL) {}
+OBJResource::OBJResource(string file) : file(file), mesh(MeshPtr()), node(NULL) {}
 
 /**
  * Resource destructor.
@@ -214,12 +217,10 @@ void OBJResource::Load() {
     setlocale(LC_NUMERIC, "C");
 
     // check if we have loaded the resource
-    if (faces != NULL) return;
+    if (node) return;
 
     ifstream* in = File::Open(file);
 
-    // create a new face set
-    faces = new FaceSet();
 
     // working variables
     char buffer[255];
@@ -229,8 +230,12 @@ void OBJResource::Load() {
     //IShaderResourcePtr  shad;
     MaterialPtr mat;
     MaterialPtr defaultMaterial = MaterialPtr(new Material());
+    vector<unsigned int> indices;
     vector< Vector<3,float> > vert, norm;
     vector< Vector<2,float> > texc;
+    Indices* is;
+    DataBlock<3,float> *vs = NULL, *ns = NULL;
+    DataBlock<2,float> *ts = NULL;
 
     // for each line...
     while (!in->eof()) {
@@ -281,45 +286,15 @@ void OBJResource::Load() {
                  || sscanf(buffer, "f %d %d %d", &f[0],&f[3],&f[6]) == 3 ) ) 
                 Error(line, "Invalid face");
             else {
-                // Create a new face with the loaded data
-                // We subtract one from all indexes so it corresponds
-                // to the correct index in the vectors.
-                FacePtr face;
-                try {
-                    face = FacePtr(new Face(vert[f[0] - 1],
-                                                    vert[f[3] - 1],
-                                                    vert[f[6] - 1],
-                                                    norm[f[2] - 1],
-                                                    norm[f[5] - 1],
-                                                    norm[f[8] - 1]));
-                } 
-                catch (Exception e) {
-                    Error(line, "Invalid face. Exception: "+ string(e.what()));
-                    //logger.info << "oh crap" << logger.end;
-                    continue;
-                }
-                    face->texc[0] = texc[f[1] - 1];
-                    face->texc[1] = texc[f[4] - 1];
-                    face->texc[2] = texc[f[7] - 1];
-                    
-                // test for valid face
-//                 if (face->vert[0] == face->vert[1] || 
-//                     face->vert[1] == face->vert[2] ||
-//                     face->vert[0] == face->vert[2]) {
-//                     Error(line, "Two or more vertices in face are equal");
-//                     continue;
-//                 }
-
-                // check against invalid normals
-                for (int i=0; i<3; i++)
-                    if (face->norm[i].IsZero())
-                        Error(line, "norm["+Convert::ToString(i)+"] is the zero vector.");
-
-                // add resource pointers
-                face->mat = mat;
-
-                // add the face to the FaceSet
-                faces->Add(face);
+                indices.push_back(f[0]-1);
+                indices.push_back(f[1]-1);
+                indices.push_back(f[2]-1);
+                indices.push_back(f[3]-1);
+                indices.push_back(f[4]-1);
+                indices.push_back(f[5]-1);
+                indices.push_back(f[6]-1);
+                indices.push_back(f[7]-1);
+                indices.push_back(f[8]-1);
             }
         }
 
@@ -353,8 +328,51 @@ void OBJResource::Load() {
     in->close();
     delete in;
 
-    node = new GeometryNode(faces);
+    if (!indices.empty()) {
+        unsigned int sz = indices.size();
+        unsigned int* d = new unsigned int[sz];
+        for (unsigned int i = 0; i < sz; ++i) 
+            d[i] = indices[i];
+        is = new Indices(sz, d);
+    }
 
+    if (!vert.empty()) {
+        unsigned int sz = vert.size();
+        float* d = new float[sz*3];
+        for (unsigned int i = 0; i < sz; ++i) {
+            Vector<3,float> v = vert[i];
+            v.ToArray(&d[i]);
+        }
+        vs = new DataBlock<3,float>(sz, d);
+    }
+
+    if (!norm.empty()) {
+        unsigned int sz = norm.size();
+        float* d = new float[sz*3];
+        for (unsigned int i = 0; i < sz; ++i) {
+            Vector<3,float> v = norm[i];
+            v.ToArray(&d[i]);
+        }
+        ns = new DataBlock<3,float>(sz, d);
+    }
+
+    if (!texc.empty()) {
+        unsigned int sz = texc.size();
+        float* d = new float[sz*2];
+        for (unsigned int i = 0; i < sz; ++i) {
+            Vector<2,float> v = texc[i];
+            v.ToArray(&d[i]);
+        }
+        ts = new DataBlock<2,float>(sz, d);
+    }
+
+    IDataBlockList texlist;
+    texlist.push_back(Float2DataBlockPtr(ts));
+    GeometrySetPtr gs = GeometrySetPtr(new GeometrySet(Float3DataBlockPtr(vs), Float3DataBlockPtr(ns), texlist, Float3DataBlockPtr()));
+
+    // // create a new mesh
+    mesh = MeshPtr(new Mesh(IndicesPtr(is), TRIANGLES, gs, mat));
+    node = new MeshNode(mesh);
     // change back the default floating point decimal symboly
     setlocale(LC_NUMERIC, lc->decimal_point);
 }
@@ -364,7 +382,7 @@ void OBJResource::Load() {
  * Resets the face collection. Does not delete the face set.
  */
 void OBJResource::Unload() {
-    faces = NULL;
+    mesh = MeshPtr();
     node = NULL;
 }
 

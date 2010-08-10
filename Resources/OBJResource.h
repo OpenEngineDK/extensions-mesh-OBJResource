@@ -14,7 +14,7 @@
 #include <Resources/IModelResource.h>
 #include <Resources/IResourcePlugin.h>
 #include <Geometry/Material.h>
-#include <Geometry/FaceSet.h>
+#include <Geometry/Mesh.h>
 
 #include <string>
 #include <vector>
@@ -37,7 +37,7 @@ private:
     // inner material structure
 
     string file;                      //!< obj file path
-    FaceSet* faces;                   //!< the face set
+    MeshPtr mesh;                       //!< the mesh
     ISceneNode* node;                 //!< the scene node
     map<string, MaterialPtr> materials; //!< resources material map
 
