@@ -330,7 +330,7 @@ void OBJResource::Load() {
 
     if (!indices.empty()) {
         unsigned int sz = indices.size()/3;
-        unsigned int* id = new unsigned int[sz];
+        unsigned short* id = new unsigned short[sz];
         float* vd = new float[sz*3];
         float* nd = new float[sz*3];
         float* td = new float[sz*2];
