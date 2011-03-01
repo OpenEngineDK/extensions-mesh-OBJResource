@@ -176,7 +176,7 @@ void OBJResource::LoadMaterialFile(string file) {
 				if (! DirectoryManager::IsInPath(resource_dir)) {
 					DirectoryManager::AppendPath(resource_dir);
 				}
-                m->AddTexture(ResourceManager<ITexture2D>::Create(string(tmp)));
+                m->AddTexture(ResourceManager<ITexture2D>::Create(string(tmp)), "diffuseMap");
             }
 
         // shader material
